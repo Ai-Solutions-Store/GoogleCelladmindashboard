@@ -1,0 +1,8 @@
+{
+  "name": "Copy of DAO & Kickstarter Launchpad",
+  "description": "A dynamic dashboard to track upcoming DAO launches, monitor startup KPIs, and view live Kickstarter project funding. Built with React and Tailwind CSS.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
