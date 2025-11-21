@@ -11,8 +11,12 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        // API_KEY for development mode only
+        // In production, set BACKEND_API_URL instead
+        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY),
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY),
+        // Backend URL for production mode
+        'process.env.BACKEND_API_URL': JSON.stringify(env.BACKEND_API_URL || '')
       },
       resolve: {
         alias: {
