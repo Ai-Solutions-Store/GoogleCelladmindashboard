@@ -3,9 +3,11 @@
 ## Desktop Launchers (T5500 Dell PowerEdge)
 
 ### 📱 Launch-YouAndINotAI.ps1
+
 **Location**: `C:\Users\joshl\Desktop\Launch-YouAndINotAI.ps1`
 
 **What it does**:
+
 - ✅ Starts PostgreSQL database (Docker)
 - ✅ Starts Redis cache (Docker)
 - ✅ Launches Node.js backend API
@@ -15,9 +17,11 @@
 **To run**: Right-click → "Run with PowerShell" (will auto-elevate to Admin)
 
 ### 🎯 Launch-T5500-Platform.ps1
+
 **Location**: `C:\Users\joshl\Desktop\Launch-T5500-Platform.ps1`
 
 **What it does**:
+
 - Starts all T5500 platform containers
 - Monitors Docker services
 - Opens monitoring dashboard
@@ -26,20 +30,22 @@
 
 ## 🌐 Domain Configuration
 
-### Production Domains:
+### Production Domains
+
 | Domain | Purpose | Files |
 |--------|---------|-------|
 | **youandinotai.com** | Dating App Landing Page | `Trollz1004-main/frontend/index.html` |
 | **youandinotai.online** | Admin Dashboard | `Trollz1004-main/dashboard/index.html` |
 
-### Local Development:
+### Local Development
+
 | Service | URL |
 |---------|-----|
-| Backend API | http://localhost:8080 |
+| Backend API | <http://localhost:8080> |
 | Database | localhost:5432 |
 | Redis | localhost:6379 |
-| Health Check | http://localhost:8080/health |
-| Admin Stats | http://localhost:8080/api/admin/stats |
+| Health Check | <http://localhost:8080/health> |
+| Admin Stats | <http://localhost:8080/api/admin/stats> |
 
 ---
 
@@ -70,29 +76,33 @@ aicollabforthekids-admin (1)/
 ## 🔑 Environment Variables
 
 All secrets are stored in:
+
 1. **GitHub Repository Secrets** (for CI/CD)
 2. **`.env` file** (for local development)
 
-### Key Variables:
+### Key Variables (Use placeholders; see `SECRETS-INVENTORY.md` for real values)
+
 ```bash
-# AI & Payments (Real Production Keys)
-GEMINI_API_KEY=AIzaSyBuaA6sdJ2kvIeXiL1jY4Qm7StXAUwFWG4
-SQUARE_ACCESS_TOKEN=EAAAl8htrajjl_aJa5eJQgW9YC1iFaaNNL0qd6r6FPLbIVITM3l8W9WJQgW9YC1
-SQUARE_LOCATION_ID=LQRMVQHDQTNM2
+# AI & Payments (Do NOT hardcode; managed via GitHub Secrets)
+GEMINI_API_KEY=<redacted>         # GitHub secret: GEMINI_API_KEY
+SQUARE_ACCESS_TOKEN=<redacted>    # GitHub secret: SQUARE_ACCESS_TOKEN
+SQUARE_LOCATION_ID=<redacted>     # GitHub secret: SQUARE_LOCATION_ID
 
 # Database
-DATABASE_URL=postgresql://admin:youandi_secure_2024@localhost:5432/youandinotai
+POSTGRES_PASSWORD=<redacted>      # GitHub secret: POSTGRES_PASSWORD
+DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@localhost:5432/youandinotai
 REDIS_URL=redis://localhost:6379
 
-# JWT
-JWT_SECRET=[Your JWT Secret]
+# JWT / Auth
+JWT_SECRET=<redacted>             # GitHub secret: JWT_SECRET
 ```
 
 ---
 
 ## ☁️ Cloudflare DNS Setup
 
-### For youandinotai.com:
+### For youandinotai.com
+
 ```
 A Record:
   Name: @
@@ -105,7 +115,8 @@ CNAME Record:
   Proxy: ✅ Enabled
 ```
 
-### For youandinotai.online:
+### For youandinotai.online
+
 ```
 A Record:
   Name: @
@@ -125,24 +136,27 @@ CNAME Record:
 ## 🚀 Deployment Steps
 
 ### 1. Using the Launcher (Easiest)
+
 ```powershell
 # On T5500 Desktop
 .\Launch-YouAndINotAI.ps1
 ```
 
 ### 2. Using Docker Compose
+
 ```bash
 cd "C:\Users\joshl\Documents\GitHub\GoogleCelladmindashboard\aicollabforthekids-admin (1)\Trollz1004-main"
 docker-compose -f docker-compose-full.yml up -d
 ```
 
 ### 3. Manual Setup
+
 ```bash
 # Start Database
 docker run -d --name youandinotai-db -p 5432:5432 \
   -e POSTGRES_DB=youandinotai \
   -e POSTGRES_USER=admin \
-  -e POSTGRES_PASSWORD=youandi_secure_2024 \
+  -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
   postgres:15
 
 # Start Redis
@@ -159,6 +173,7 @@ node server.js
 ## 📊 Features
 
 ### Dating App (youandinotai.com)
+
 - 🤖 AI-Powered Matching (Gemini)
 - 💳 Square Payment Processing
 - 💬 Real-time Chat (Socket.IO)
@@ -169,6 +184,7 @@ node server.js
   - VIP: $29.99/month
 
 ### Admin Dashboard (youandinotai.online)
+
 - 📈 Real-time Platform Statistics
 - 👥 User Management
 - 💰 Revenue Tracking
@@ -179,7 +195,8 @@ node server.js
 
 ## ✅ Verification
 
-### Check Services:
+### Check Services
+
 ```bash
 # Backend Health
 curl http://localhost:8080/health
@@ -191,7 +208,8 @@ curl http://localhost:8080/api/admin/stats
 docker ps
 ```
 
-### Expected Response:
+### Expected Response
+
 ```json
 {
   "status": "healthy",
@@ -207,16 +225,19 @@ docker ps
 ## 🆘 Troubleshooting
 
 ### Launcher won't run?
+
 1. Right-click PowerShell → Run as Administrator
 2. Run: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
 3. Try launcher again
 
 ### Docker won't start?
+
 1. Open Docker Desktop manually
 2. Wait 30 seconds
 3. Run launcher again
 
 ### Port already in use?
+
 ```powershell
 # Find process using port 8080
 netstat -ano | findstr :8080
@@ -229,7 +250,7 @@ taskkill /PID [PID] /F
 
 ## 📞 Support
 
-- **GitHub Issues**: https://github.com/Ai-Solutions-Store/GoogleCelladmindashboard/issues
+- **GitHub Issues**: <https://github.com/Ai-Solutions-Store/GoogleCelladmindashboard/issues>
 - **Documentation**: See `DOMAIN-CONFIG.md` for complete setup
 - **Test Results**: See `TEST-VERIFICATION-REPORT.md`
 
