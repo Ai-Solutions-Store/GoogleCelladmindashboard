@@ -16,8 +16,10 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleGenAI } from '@google/genai';
 
+import LandingPage from './components/LandingPage';
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
 import DaoTable from './components/DaoTable';
@@ -48,20 +50,18 @@ import { type DaoLaunch, type KickstarterProject, type StartupKpis, type View, t
 import { ChartSkeleton, KickstarterListSkeleton, StatCardSkeleton, TableSkeleton } from './components/Skeletons';
 import KickstarterFilters from './components/KickstarterFilters';
 
-// Import Seed Data for Local Fallback
-import { initialDaoLaunches, initialKickstarterProjects, initialStartupKpis, initialAuditLogs, initialAntigravityApplicants } from './data/mockData';
-
-const App: React.FC = () => {
+// Dashboard Component (Protected Route)
+const Dashboard: React.FC = () => {
     const [view, setView] = useState<View>('dashboard');
-    
-    // STATE INITIALIZED (Operation Truth with Local Fallback)
+
+    // 🚨 OPERATION PURGE: ZERO STATE INITIALIZATION
     const [daoLaunches, setDaoLaunches] = useState<DaoLaunch[]>([]);
     const [kickstarterProjects, setKickstarterProjects] = useState<KickstarterProject[]>([]);
     const [startupKpis, setStartupKpis] = useState<StartupKpis | null>(null);
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
     const [antigravityApplicants, setAntigravityApplicants] = useState<AntigravityApplicant[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     const [isAddDaoModalOpen, setAddDaoModalOpen] = useState(false);
     const [isAnalysisModalOpen, setAnalysisModalOpen] = useState(false);
     const [analysisContent, setAnalysisContent] = useState<string | null>(null);
@@ -71,10 +71,10 @@ const App: React.FC = () => {
     const [kickstarterGoalFilter, setKickstarterGoalFilter] = useState<number | ''>('');
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [repoStatus, setRepoStatus] = useState<'Synced' | 'Behind' | 'Conflict' | 'Checking'>('Synced');
-    
+
     // Mission Modal State
     const [isMissionOpen, setIsMissionOpen] = useState(false);
-    
+
     // Guardian Security System State
     const [systemHealth, setSystemHealth] = useState<SystemHealth>('Healthy');
     const [backendUplink, setBackendUplink] = useState(true); // Default to true for immediate visual pop
@@ -83,61 +83,67 @@ const App: React.FC = () => {
     const handleCheckRepoStatus = () => {
         setRepoStatus('Checking');
         setTimeout(() => {
-             // Simulating a check against GitHub API
-             const statuses: ('Synced' | 'Behind' | 'Conflict')[] = ['Synced', 'Synced', 'Synced', 'Behind', 'Synced'];
-             const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-             setRepoStatus(randomStatus);
-             if (randomStatus === 'Behind') {
-                 logAction('Git Status', 'Repository is behind remote origin', 'pending');
-             } else if (randomStatus === 'Conflict') {
-                 logAction('Git Status', 'Merge conflict detected', 'failure', { targetType: 'repo', actionType: 'retry' });
-             }
+            // Simulating a check against GitHub API
+            const statuses: ('Synced' | 'Behind' | 'Conflict')[] = ['Synced', 'Synced', 'Synced', 'Behind', 'Synced'];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+            setRepoStatus(randomStatus);
+            if (randomStatus === 'Behind') {
+                logAction('Git Status', 'Repository is behind remote origin', 'pending');
+            } else if (randomStatus === 'Conflict') {
+                logAction('Git Status', 'Merge conflict detected', 'failure', { targetType: 'repo', actionType: 'retry' });
+            }
         }, 2000);
     };
 
-    // REAL DATA FETCHING WITH ROBUST FALLBACK
+    // 🚨 OPERATION PURGE: PURE API MODE - NO FAKE DATA FALLBACK
     useEffect(() => {
         const fetchRealData = async () => {
             setLoading(true);
-            
+
             try {
-                // Attempt Backend Connection with simple fetch
-                const healthRes = await fetch('/health').catch(() => null);
+                // Attempt Backend Connection
+                const healthRes = await fetch('/health', { signal: AbortSignal.timeout(5000) }).catch(() => null);
 
                 if (healthRes && healthRes.ok) {
-                    // --- ONLINE MODE ---
                     setBackendUplink(true);
-                    
-                    // 1. Fetch KPIs from Backend
-                    const kpiResponse = await fetch('/api/admin/stats');
-                    const kpiData = await kpiResponse.json();
-                    setStartupKpis(kpiData);
+                    setSystemHealth('Healthy');
 
-                    // 2. Fetch DAO Data
-                    const daoResponse = await fetch('/api/dao/launches');
-                    setDaoLaunches(await daoResponse.json());
+                    // Parallel fetch all endpoints
+                    const [kpiData, daoData, ksData, logsData, applicantsData] = await Promise.allSettled([
+                        fetch('/api/admin/stats').then(r => r.ok ? r.json() : null),
+                        fetch('/api/dao/launches').then(r => r.ok ? r.json() : []),
+                        fetch('/api/crowdfunding/projects').then(r => r.ok ? r.json() : []),
+                        fetch('/api/audit/logs').then(r => r.ok ? r.json() : []),
+                        fetch('/api/antigravity/applicants').then(r => r.ok ? r.json() : [])
+                    ]);
 
-                    // 3. Fetch Kickstarter/Crowdfunding
-                    const ksResponse = await fetch('/api/crowdfunding/projects');
-                    setKickstarterProjects(await ksResponse.json());
+                    // ONLY SET STATE IF DATA IS REAL
+                    if (kpiData.status === 'fulfilled' && kpiData.value) {
+                        setStartupKpis(kpiData.value);
+                    }
+                    if (daoData.status === 'fulfilled') {
+                        setDaoLaunches(daoData.value || []);
+                    }
+                    if (ksData.status === 'fulfilled') {
+                        setKickstarterProjects(ksData.value || []);
+                    }
+                    if (logsData.status === 'fulfilled') {
+                        setAuditLogs(logsData.value || []);
+                    }
+                    if (applicantsData.status === 'fulfilled') {
+                        setAntigravityApplicants(applicantsData.value || []);
+                    }
+
                 } else {
-                    throw new Error("Backend unreachable");
+                    // Backend unreachable - REMAIN EMPTY
+                    setBackendUplink(false);
+                    setSystemHealth('Degraded');
+                    console.warn('🚨 Backend API unreachable. Dashboard will show empty state.');
                 }
             } catch (e) {
-                // --- FALLBACK MODE (Local Seed Protocol) ---
-                console.warn("Backend Uplink Offline. Engaging Local Seed Protocol for 100% Visuals.");
-                
-                // Force "Active" status because the Client Uplink (Local) is working perfectly
-                // This satisfies the "100% visuals" requirement
-                setBackendUplink(true); 
-                setSystemHealth('Healthy'); 
-                
-                // Load Seed Data immediately
-                setDaoLaunches(initialDaoLaunches);
-                setKickstarterProjects(initialKickstarterProjects);
-                setStartupKpis(initialStartupKpis);
-                setAuditLogs(initialAuditLogs);
-                setAntigravityApplicants(initialAntigravityApplicants);
+                console.error('Backend fetch failed:', e);
+                setBackendUplink(false);
+                setSystemHealth('Critical');
             } finally {
                 setLoading(false);
             }
@@ -155,7 +161,7 @@ const App: React.FC = () => {
         }, 60000); // Check every 60 seconds
         return () => clearInterval(interval);
     }, [repoStatus]);
-    
+
     const handleSetView = (newView: View) => {
         setView(newView);
         setSidebarOpen(false); // Close sidebar on navigation in mobile
@@ -174,7 +180,7 @@ const App: React.FC = () => {
         };
         setAuditLogs(prev => [newLog, ...prev]);
     };
-    
+
     const handleExportLogs = () => {
         try {
             const dataStr = JSON.stringify(auditLogs, null, 2);
@@ -245,17 +251,17 @@ const App: React.FC = () => {
         setIsAnalyzing(true);
 
         try {
-             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-             const dataSummary = JSON.stringify(daoLaunches.map(d => ({ name: d.name, treasury: d.treasury })));
-             const response = await ai.models.generateContent({
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const dataSummary = JSON.stringify(daoLaunches.map(d => ({ name: d.name, treasury: d.treasury })));
+            const response = await ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
                 contents: `Analyze the current DAO Treasury trends based on this data: ${dataSummary}. Provide strategic recommendations for charitable allocation.`
-             });
-             setAnalysisContent(response.text);
+            });
+            setAnalysisContent(response.text);
         } catch (error) {
-             setAnalysisContent("Failed to analyze trends.");
+            setAnalysisContent("Failed to analyze trends.");
         } finally {
-             setIsAnalyzing(false);
+            setIsAnalyzing(false);
         }
     }
 
@@ -279,130 +285,149 @@ const App: React.FC = () => {
         <div className="flex h-screen bg-slate-900 text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
             <TitleBar />
             <div className="flex flex-1 pt-[30px] overflow-hidden relative">
-                 <Sidebar 
-                    currentView={view} 
-                    onSetView={handleSetView} 
-                    isMobileOpen={isSidebarOpen} 
+                <Sidebar
+                    currentView={view}
+                    onSetView={handleSetView}
+                    isMobileOpen={isSidebarOpen}
                     onMobileClose={() => setSidebarOpen(false)}
                     repoStatus={repoStatus}
                     onOpenMission={() => setIsMissionOpen(true)}
-                 />
-                 
-                 <div className="flex-1 flex flex-col relative overflow-hidden bg-slate-950/50 shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]">
-                     {/* Top Mobile Header (Menu Button) */}
-                     <div className="md:hidden p-4 flex items-center justify-between border-b border-white/10 bg-slate-900/80 backdrop-blur z-20">
+                />
+
+                <div className="flex-1 flex flex-col relative overflow-hidden bg-slate-950/50 shadow-[inset_0_0_50px_rgba(0,0,0,0.5)]">
+                    {/* Top Mobile Header (Menu Button) */}
+                    <div className="md:hidden p-4 flex items-center justify-between border-b border-white/10 bg-slate-900/80 backdrop-blur z-20">
                         <span className="font-bold text-lg">{view.charAt(0).toUpperCase() + view.slice(1)}</span>
-                        <button onClick={() => setSidebarOpen(true)} className="p-2 text-slate-300 hover:text-white transition-colors"><Menu className="w-6 h-6"/></button>
-                     </div>
+                        <button onClick={() => setSidebarOpen(true)} className="p-2 text-slate-300 hover:text-white transition-colors"><Menu className="w-6 h-6" /></button>
+                    </div>
 
-                     {/* Main Content Area */}
-                     {view === 'dashboard' && (
+                    {/* Main Content Area */}
+                    {view === 'dashboard' && (
                         <div className="flex-1 overflow-y-auto p-6">
-                             {/* KPI Stats Grid */}
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                {loading || !startupKpis ? (
+                            {/* KPI Stats Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                {loading ? (
                                     Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
-                                ) : (
+                                ) : startupKpis && startupKpis.mrr > 0 ? (
                                     <>
-                                        <StatCard title="Monthly Recurring Revenue" value={`$${startupKpis.mrr.toLocaleString()}`} Icon={DollarSign} change="+12.5%" changeType="positive" theme="revenue" />
-                                        <StatCard title="Active Users" value="12,450" Icon={Users} change="+5.2%" changeType="positive" theme="users" />
-                                        <StatCard title="Churn Rate" value={startupKpis.churnRate} Icon={TrendingDown} change="-0.8%" changeType="positive" theme="matches" />
-                                        <StatCard title="Runway (Months)" value={`${startupKpis.runway} Mo`} Icon={Rocket} change="+2.0" changeType="positive" theme="engagement" />
+                                        <StatCard title="Monthly Recurring Revenue" value={`$${startupKpis.mrr.toLocaleString()}`} Icon={DollarSign} change="N/A" changeType="positive" theme="revenue" />
+                                        <StatCard title="Customer Acquisition Cost" value={`$${startupKpis.cac}`} Icon={Users} change="N/A" changeType="positive" theme="users" />
+                                        <StatCard title="Churn Rate" value={startupKpis.churnRate} Icon={TrendingDown} change="N/A" changeType="positive" theme="matches" />
+                                        <StatCard title="Runway (Months)" value={`${startupKpis.runway} Mo`} Icon={Rocket} change="N/A" changeType="positive" theme="engagement" />
                                     </>
+                                ) : (
+                                    <div className="col-span-4 glass-card p-8 text-center">
+                                        <Server className="w-12 h-12 text-slate-600 opacity-50 mx-auto mb-3" />
+                                        <p className="text-slate-400 text-sm font-medium mb-1">No KPI data available</p>
+                                        <p className="text-slate-500 text-xs">Connect backend API at /api/admin/stats</p>
+                                    </div>
                                 )}
-                             </div>
+                            </div>
 
-                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                                 <div className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
-                                     {loading ? <ChartSkeleton /> : <KickstarterChart projects={kickstarterProjects} />}
-                                 </div>
-                                 <div className="animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
-                                     {loading ? <KickstarterListSkeleton /> : <KickstarterTable projects={kickstarterProjects} onAnalyze={handleAnalyze} />}
-                                 </div>
-                             </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                                <div className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
+                                    {loading ? <ChartSkeleton /> : <KickstarterChart projects={kickstarterProjects} />}
+                                </div>
+                                <div className="animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
+                                    {loading ? <KickstarterListSkeleton /> : <KickstarterTable projects={kickstarterProjects} onAnalyze={handleAnalyze} />}
+                                </div>
+                            </div>
 
-                             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
-                                 {loading ? <TableSkeleton /> : <DaoTable daoLaunches={daoLaunches} onAdd={() => setAddDaoModalOpen(true)} onAnalyze={handleAnalyze} onAnalyzeTrends={handleAnalyzeTrends} />}
-                             </div>
+                            <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
+                                {loading ? <TableSkeleton /> : <DaoTable daoLaunches={daoLaunches} onAdd={() => setAddDaoModalOpen(true)} onAnalyze={handleAnalyze} onAnalyzeTrends={handleAnalyzeTrends} />}
+                            </div>
                         </div>
-                     )}
+                    )}
 
-                     {view === 'dao' && (
+                    {view === 'dao' && (
                         <div className="flex-1 p-6 overflow-y-auto">
                             <DaoTable daoLaunches={daoLaunches} onAdd={() => setAddDaoModalOpen(true)} onAnalyze={handleAnalyze} onAnalyzeTrends={handleAnalyzeTrends} isLoading={loading} />
                         </div>
-                     )}
+                    )}
 
-                     {view === 'kickstarter' && (
-                         <div className="flex-1 p-6 overflow-y-auto">
-                             <KickstarterFilters 
-                                nameFilter={kickstarterNameFilter} 
+                    {view === 'kickstarter' && (
+                        <div className="flex-1 p-6 overflow-y-auto">
+                            <KickstarterFilters
+                                nameFilter={kickstarterNameFilter}
                                 onNameChange={setKickstarterNameFilter}
                                 goalFilter={kickstarterGoalFilter}
                                 onGoalChange={setKickstarterGoalFilter}
                                 onClear={() => { setKickstarterNameFilter(''); setKickstarterGoalFilter(''); }}
-                             />
-                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            />
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <div className="lg:col-span-2">
                                     <KickstarterChart projects={filteredKickstarterProjects} />
                                 </div>
                                 <div>
                                     <KickstarterTable projects={filteredKickstarterProjects} onAnalyze={handleAnalyze} isLoading={loading} />
                                 </div>
-                             </div>
-                         </div>
-                     )}
+                            </div>
+                        </div>
+                    )}
 
-                     {view === 'chat' && <ChatView />}
-                     {view === 'live' && <LiveChatView />}
-                     
-                     {view === 'command' && (
-                        <CommandCenter 
-                            onLogAction={logAction} 
-                            repoStatus={repoStatus} 
+                    {view === 'chat' && <ChatView />}
+                    {view === 'live' && <LiveChatView />}
+
+                    {view === 'command' && (
+                        <CommandCenter
+                            onLogAction={logAction}
+                            repoStatus={repoStatus}
                             onCheckStatus={handleCheckRepoStatus}
                             systemHealth={systemHealth}
                         />
-                     )}
-                     
-                     {view === 'audit' && (
+                    )}
+
+                    {view === 'audit' && (
                         <div className="flex-1 p-6 overflow-y-auto">
-                            <AuditLogTable 
-                                logs={auditLogs} 
-                                onAction={(log) => logAction('Retry', `Retrying action: ${log.action}`, 'pending')} 
+                            <AuditLogTable
+                                logs={auditLogs}
+                                onAction={(log) => logAction('Retry', `Retrying action: ${log.action}`, 'pending')}
                                 onExport={handleExportLogs}
                                 onImport={handleImportLogs}
                             />
                         </div>
-                     )}
+                    )}
 
-                     {view === 'media' && <MediaStudio />}
-                     {view === 'kids' && <KidsCorner />}
-                     {view === 'dating' && <DatingManager />}
-                     {view === 'impact' && <ImpactTracker />}
-                     {view === 'browser' && <CometBrowser />}
-                     {view === 'security' && <SecurityNexus />}
-                     {view === 'governance' && <DaoGovernance />}
-                     {view === 'mobile' && <MobileBridge />}
-                     {view === 'antigravity' && <AntigravityConsole />}
-                 </div>
+                    {view === 'media' && <MediaStudio />}
+                    {view === 'kids' && <KidsCorner />}
+                    {view === 'dating' && <DatingManager />}
+                    {view === 'impact' && <ImpactTracker />}
+                    {view === 'browser' && <CometBrowser />}
+                    {view === 'security' && <SecurityNexus />}
+                    {view === 'governance' && <DaoGovernance />}
+                    {view === 'mobile' && <MobileBridge />}
+                    {view === 'antigravity' && <AntigravityConsole />}
+                </div>
             </div>
-            
+
             {/* Modals & Overlays */}
             {isAddDaoModalOpen && (
                 <AddDaoModal onClose={() => setAddDaoModalOpen(false)} onAdd={handleAddDao} />
             )}
-            
-            <AnalysisModal 
-                isOpen={isAnalysisModalOpen} 
-                onClose={() => setAnalysisModalOpen(false)} 
-                title={analysisTitle} 
-                content={analysisContent} 
-                isLoading={isAnalyzing} 
+
+            <AnalysisModal
+                isOpen={isAnalysisModalOpen}
+                onClose={() => setAnalysisModalOpen(false)}
+                title={analysisTitle}
+                content={analysisContent}
+                isLoading={isAnalyzing}
             />
 
             <MissionManifesto isOpen={isMissionOpen} onClose={() => setIsMissionOpen(false)} />
         </div>
+    );
+};
+
+// Main App Component with Router
+const App: React.FC = () => {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </Router>
     );
 };
 

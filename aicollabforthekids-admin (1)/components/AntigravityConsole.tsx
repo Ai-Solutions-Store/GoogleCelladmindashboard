@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { AntigravityApplicant } from '../types';
 import { Zap, CheckCircle, X, GitHub, Award, Cpu, Terminal, Activity, Layers, Globe, Server } from './IconComponents';
-import { initialAntigravityApplicants } from '../data/mockData';
 
 const AntigravityConsole: React.FC = () => {
     const [applicants, setApplicants] = useState<AntigravityApplicant[]>([]);
@@ -11,15 +10,20 @@ const AntigravityConsole: React.FC = () => {
     const [reasoningThreads, setReasoningThreads] = useState(8943);
 
     useEffect(() => {
-        // Simulate API fetch with fallback to seed data and live metric simulation
+        // 🚨 OPERATION PURGE: Fetch from API only, no mock data
         const loadData = async () => {
             setIsLoading(true);
             try {
-                // Simulate network delay for realism
-                await new Promise(resolve => setTimeout(resolve, 1200));
-                setApplicants(initialAntigravityApplicants);
+                const response = await fetch('/api/antigravity/applicants');
+                if (response.ok) {
+                    const data = await response.json();
+                    setApplicants(data);
+                } else {
+                    setApplicants([]); // EMPTY STATE - NO MOCK DATA
+                }
             } catch (e) {
-                console.error(e);
+                console.error('Failed to load applicants:', e);
+                setApplicants([]);
             } finally {
                 setIsLoading(false);
             }
@@ -36,13 +40,13 @@ const AntigravityConsole: React.FC = () => {
     }, []);
 
     const handleStatusChange = (id: string, newStatus: AntigravityApplicant['status']) => {
-        setApplicants(prev => prev.map(app => 
+        setApplicants(prev => prev.map(app =>
             app.id === id ? { ...app, status: newStatus } : app
         ));
     };
 
     const getStatusBadge = (status: AntigravityApplicant['status']) => {
-        switch(status) {
+        switch (status) {
             case 'accepted': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
             case 'rejected': return 'bg-rose-500/20 text-rose-400 border-rose-500/50';
             case 'under_review': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 animate-pulse';
@@ -56,18 +60,18 @@ const AntigravityConsole: React.FC = () => {
             <div className="absolute inset-0 pointer-events-none">
                 {/* Deep Space Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#0a0a1a] to-black"></div>
-                
+
                 {/* Floating Orbs (Gravity Wells) */}
                 <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-indigo-900/10 rounded-full blur-[120px] animate-pulse"></div>
                 <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-cyan-900/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-                
+
                 {/* Grid Overlay */}
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
             </div>
 
             {/* --- CONTENT LAYER --- */}
             <div className="relative z-10 max-w-7xl mx-auto">
-                
+
                 {/* Header: Command Deck */}
                 <header className="glass-card p-8 mb-10 border-t-4 border-cyan-500 shadow-[0_0_50px_rgba(6,182,212,0.15)] bg-slate-900/40 backdrop-blur-xl flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
@@ -117,7 +121,7 @@ const AntigravityConsole: React.FC = () => {
                             <span className="text-green-500">ONLINE</span>
                         </div>
                     </div>
-                    
+
                     {/* Pipeline Nodes */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         {[
@@ -145,10 +149,18 @@ const AntigravityConsole: React.FC = () => {
                             </div>
                             <p className="mt-6 text-cyan-300 font-mono tracking-widest text-sm">INITIALIZING GRAVITY WELL...</p>
                         </div>
+                    ) : applicants.length === 0 ? (
+                        <div className="col-span-2 py-20 flex flex-col items-center justify-center text-center">
+                            <Zap className="w-16 h-16 text-slate-700 mb-4 opacity-30" />
+                            <h3 className="text-lg font-semibold text-slate-400 mb-2">No Applicants Yet</h3>
+                            <p className="text-slate-500 text-sm max-w-md">
+                                Applicant data will appear here when available from the backend API.
+                            </p>
+                        </div>
                     ) : (
                         applicants.map((app, index) => (
-                            <div 
-                                key={app.id} 
+                            <div
+                                key={app.id}
                                 className="group glass-card p-0 border border-white/10 bg-slate-900/60 hover:bg-slate-800/90 transition-all duration-500 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] relative overflow-hidden rounded-2xl"
                                 style={{
                                     animation: `float 8s ease-in-out infinite`,
@@ -157,15 +169,15 @@ const AntigravityConsole: React.FC = () => {
                             >
                                 {/* Floating Card Effects */}
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                                
+
                                 <div className="p-6 flex flex-col h-full">
                                     {/* Card Header */}
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg relative overflow-hidden
-                                                ${app.specialty === 'AI/ML' ? 'bg-gradient-to-br from-blue-600 to-cyan-500' : 
-                                                  app.specialty === 'Blockchain' ? 'bg-gradient-to-br from-orange-500 to-red-500' :
-                                                  'bg-gradient-to-br from-purple-600 to-pink-500'
+                                                ${app.specialty === 'AI/ML' ? 'bg-gradient-to-br from-blue-600 to-cyan-500' :
+                                                    app.specialty === 'Blockchain' ? 'bg-gradient-to-br from-orange-500 to-red-500' :
+                                                        'bg-gradient-to-br from-purple-600 to-pink-500'
                                                 }`}>
                                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
                                                 {app.name.charAt(0)}
@@ -182,7 +194,7 @@ const AntigravityConsole: React.FC = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {/* AI Score Badge */}
                                         <div className="flex flex-col items-end">
                                             <div className={`flex items-center gap-1 text-sm font-bold ${app.score >= 90 ? 'text-yellow-400' : 'text-slate-400'}`}>
@@ -212,17 +224,17 @@ const AntigravityConsole: React.FC = () => {
                                             <div className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${getStatusBadge(app.status)}`}>
                                                 {app.status.replace('_', ' ')}
                                             </div>
-                                            
+
                                             {app.status !== 'accepted' && app.status !== 'rejected' && (
                                                 <div className="flex gap-2 ml-2 pl-2 border-l border-white/10">
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleStatusChange(app.id, 'accepted')}
                                                         className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-400 border border-emerald-500/30 transition-all shadow-lg hover:shadow-emerald-500/20"
                                                         title="Accept into Program"
                                                     >
                                                         <CheckCircle className="w-5 h-5" />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleStatusChange(app.id, 'rejected')}
                                                         className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 border border-rose-500/30 transition-all shadow-lg hover:shadow-rose-500/20"
                                                         title="Reject Application"
