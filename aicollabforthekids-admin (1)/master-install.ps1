@@ -106,10 +106,14 @@ try {
   Show-ProgressBar -Activity "Installing Dependencies" -PercentComplete 35
     
   Write-Status "Running: npm install --legacy-peer-deps" "Info"
-  $installOutput = npm install --legacy-peer-deps 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    Write-Host "`nInstall Output:" -ForegroundColor Yellow
-    Write-Host $installOutput
+  Write-Host "Installation output:" -ForegroundColor Cyan
+  Write-Host ""
+  npm install --legacy-peer-deps
+  $installExitCode = $LASTEXITCODE
+  Write-Host ""
+  
+  if ($installExitCode -ne 0) {
+    Write-Status "Installation failed with exit code: $installExitCode" "Error"
     throw "npm install failed. Check your internet connection and try again."
   }
     
@@ -180,16 +184,14 @@ NODE_ENV=production
   Show-ProgressBar -Activity "Building Application" -PercentComplete 70
     
   Write-Status "Running: npm run build" "Info"
-  Write-Status "Build output will be shown below..." "Info"
+  Write-Host "Build output:" -ForegroundColor Cyan
   Write-Host ""
-  $buildOutput = npm run build 2>&1
+  npm run build
   $buildExitCode = $LASTEXITCODE
   Write-Host ""
   
   if ($buildExitCode -ne 0) {
     Write-Status "Build failed with exit code: $buildExitCode" "Error"
-    Write-Host "`nBuild Output:" -ForegroundColor Yellow
-    Write-Host $buildOutput
     throw "Build failed. Check for TypeScript errors, ESLint issues, or missing dependencies."
   }
     
