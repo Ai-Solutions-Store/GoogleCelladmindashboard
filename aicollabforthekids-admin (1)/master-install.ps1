@@ -105,8 +105,11 @@ try {
   Write-Status "Installing dependencies (this may take 2-3 minutes)..." "Info"
   Show-ProgressBar -Activity "Installing Dependencies" -PercentComplete 35
     
-  npm install --legacy-peer-deps 2>&1 | Out-Null
+  Write-Status "Running: npm install --legacy-peer-deps" "Info"
+  $installOutput = npm install --legacy-peer-deps 2>&1
   if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nInstall Output:" -ForegroundColor Yellow
+    Write-Host $installOutput
     throw "npm install failed. Check your internet connection and try again."
   }
     
@@ -176,9 +179,18 @@ NODE_ENV=production
   Write-Status "This will take 30-60 seconds..." "Info"
   Show-ProgressBar -Activity "Building Application" -PercentComplete 70
     
-  npm run build 2>&1 | Out-Null
-  if ($LASTEXITCODE -ne 0) {
-    throw "Build failed. Check for TypeScript errors or missing dependencies."
+  Write-Status "Running: npm run build" "Info"
+  Write-Status "Build output will be shown below..." "Info"
+  Write-Host ""
+  $buildOutput = npm run build 2>&1
+  $buildExitCode = $LASTEXITCODE
+  Write-Host ""
+  
+  if ($buildExitCode -ne 0) {
+    Write-Status "Build failed with exit code: $buildExitCode" "Error"
+    Write-Host "`nBuild Output:" -ForegroundColor Yellow
+    Write-Host $buildOutput
+    throw "Build failed. Check for TypeScript errors, ESLint issues, or missing dependencies."
   }
     
   Write-Status "Build completed successfully" "Success"
@@ -336,10 +348,17 @@ catch {
   Write-Host "`n--- TROUBLESHOOTING ---" -ForegroundColor Yellow
   Write-Host "1. Ensure Node.js v20+ is installed: https://nodejs.org" -ForegroundColor White
   Write-Host "2. Check your internet connection" -ForegroundColor White
-  Write-Host "3. Try running: " -NoNewline -ForegroundColor White
+  Write-Host "3. If build fails due to TypeScript/ESLint errors:" -ForegroundColor White
+  Write-Host "   - Run: " -NoNewline -ForegroundColor White
+  Write-Host "npm run lint" -NoNewline -ForegroundColor Cyan
+  Write-Host " to see all linting errors" -ForegroundColor White
+  Write-Host "   - Run: " -NoNewline -ForegroundColor White
+  Write-Host "npx tsc --noEmit" -NoNewline -ForegroundColor Cyan
+  Write-Host " to check TypeScript errors" -ForegroundColor White
+  Write-Host "4. Try clearing cache: " -NoNewline -ForegroundColor White
   Write-Host "npm cache clean --force" -ForegroundColor Cyan
-  Write-Host "4. Review error message above for specific issues" -ForegroundColor White
-  Write-Host "5. Check SECRETS-INVENTORY.md for credential requirements" -ForegroundColor White
+  Write-Host "5. Review error message above for specific issues" -ForegroundColor White
+  Write-Host "6. Check SECRETS-INVENTORY.md for credential requirements" -ForegroundColor White
     
   Write-Host "`n📞 Support:" -ForegroundColor Cyan
   Write-Host "GitHub Issues: https://github.com/Ai-Solutions-Store/GoogleCelladmindashboard/issues" -ForegroundColor White
