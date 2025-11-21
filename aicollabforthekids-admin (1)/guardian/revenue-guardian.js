@@ -11,14 +11,14 @@ const { GoogleGenAI } = require('@google/genai');
 const { Pool } = require('pg');
 
 // Initialize Infrastructure
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // --- THE SCOUT AGENT ---
 // Role: Aggressive Innovator
 async function runScout(metrics) {
     console.log("👁️ SCOUT: Scanning system metrics...");
-    
+
     const systemInstruction = `
     You are THE SCOUT. Your existence is dedicated to one goal: Generating funds for Shriners Hospitals.
     

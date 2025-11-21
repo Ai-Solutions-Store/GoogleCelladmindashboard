@@ -2,9 +2,9 @@ name: AiCollab CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -22,8 +22,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -33,9 +33,7 @@ jobs:
 
       - name: Build project
         run: npm run build
-        env:
-          # In production, secrets should be injected via repository secrets
-          VITE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        # Note: Removed VITE_API_KEY - frontend now uses backend /api/ai proxy for all AI calls
 
       - name: Upload production-ready build files
         uses: actions/upload-artifact@v4
@@ -50,7 +48,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -64,7 +62,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: "./dist"
 
       - name: Deploy to GitHub Pages
         id: deployment

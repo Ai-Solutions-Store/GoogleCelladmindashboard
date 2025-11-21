@@ -1,36 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
 const logger = require('../utils/logger');
+const aiClient = require('../services/aiClient');
 
 // POST /api/ai/chat - Chat with Gemini AI
 router.post('/chat', async (req, res) => {
     try {
         const { message, conversationHistory } = req.body;
 
-        if (!process.env.GEMINI_API_KEY) {
+        if (!aiClient.isConfigured()) {
             return res.status(503).json({ error: 'AI service not configured' });
         }
 
-        const prompt = conversationHistory
-            ? `${conversationHistory}\n\nUser: ${message}\n\nAssistant:`
-            : message;
-
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            }
-        );
-
-        const reply = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const result = await aiClient.chat(message, conversationHistory);
 
         res.json({
             success: true,
-            reply,
-            model: 'gemini-pro'
+            reply: result.text,
+            model: result.model
         });
 
     } catch (error) {
@@ -43,6 +30,10 @@ router.post('/chat', async (req, res) => {
 router.post('/match-analysis', async (req, res) => {
     try {
         const { matchId } = req.body;
+
+        if (!aiClient.isConfigured()) {
+            return res.status(503).json({ error: 'AI service not configured' });
+        }
 
         // Get match details
         const matchResult = await req.app.locals.pool.query(
@@ -61,32 +52,14 @@ router.post('/match-analysis', async (req, res) => {
         }
 
         const match = matchResult.rows[0];
-
-        const prompt = `Analyze the compatibility between these two dating profiles:
-
-Profile A: ${match.bio_a}
-Profile B: ${match.bio_b}
-
-Provide a compatibility score (0-100) and a brief analysis.`;
-
-        if (!process.env.GEMINI_API_KEY) {
-            return res.status(503).json({ error: 'AI service not configured' });
-        }
-
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            }
+        const result = await aiClient.analyzeCompatibility(
+            { bio: match.bio_a, interests: match.interests_a },
+            { bio: match.bio_b, interests: match.interests_b }
         );
-
-        const analysis = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         res.json({
             success: true,
-            analysis,
+            analysis: result.text,
             matchId
         });
 
@@ -99,36 +72,28 @@ Provide a compatibility score (0-100) and a brief analysis.`;
 // POST /api/ai/date-suggestions - Get AI date ideas (Premium feature)
 router.post('/date-suggestions', async (req, res) => {
     try {
-        const { matchId, location, budget } = req.body;
+        const { matchId, location, budget, interests, ageRange } = req.body;
 
-        const prompt = `Suggest 3 unique date ideas for a couple in ${location || 'their city'}
-        with a ${budget || 'moderate'} budget. Be creative and specific.`;
-
-        if (!process.env.GEMINI_API_KEY) {
+        if (!aiClient.isConfigured()) {
             return res.status(503).json({ error: 'AI service not configured' });
         }
 
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            }
+        const result = await aiClient.generateDateIdeas(
+            location || 'their city',
+            budget || 'moderate',
+            { interests, ageRange }
         );
-
-        const suggestions = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
         // Save to database
         await req.app.locals.pool.query(
             `INSERT INTO ai_date_plans (match_id, generated_by_user_id, date_ideas, gemini_prompt)
              VALUES ($1, $2, $3, $4)`,
-            [matchId, req.userId, JSON.stringify({ suggestions }), prompt]
+            [matchId, req.userId, JSON.stringify({ suggestions: result.text }), result.text.substring(0, 500)]
         );
 
         res.json({
             success: true,
-            suggestions
+            suggestions: result.text
         });
 
     } catch (error) {

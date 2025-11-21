@@ -20,11 +20,11 @@ async function verify() {
             accessToken: process.env.SQUARE_ACCESS_TOKEN,
             environment: Environment.Production,
         });
-        
+
         // List locations to verify connectivity
         const { result } = await square.locationsApi.listLocations();
         console.log(`✅ SQUARE PAYMENTS: ONLINE | Found ${result.locations.length} Locations`);
-        
+
     } catch (error) {
         console.error("❌ SQUARE PAYMENTS: FAILED");
         console.error("   -> " + error.message);
@@ -33,9 +33,9 @@ async function verify() {
     // 2. EBAY API (Production)
     try {
         // Simple token validity check via public endpoint or status
-        if(process.env.EBAY_APP_ID && process.env.EBAY_CERT_ID) {
-             console.log(`✅ EBAY STORE: CREDENTIALS PRESENT`);
-             console.log("   -> Note: Full API check requires OAuth user flow.");
+        if (process.env.EBAY_APP_ID && process.env.EBAY_CERT_ID) {
+            console.log(`✅ EBAY STORE: CREDENTIALS PRESENT`);
+            console.log("   -> Note: Full API check requires OAuth user flow.");
         } else {
             console.log("⚠️ EBAY STORE: Keys missing in .env");
         }
@@ -45,19 +45,19 @@ async function verify() {
 
     // 3. GEMINI AI (Production)
     try {
-        const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) throw new Error("GEMINI_API_KEY missing");
-        
+
         // Using v1beta for simple check
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro?key=${apiKey}`;
         const response = await axios.get(url);
-        
-        if(response.status === 200) {
+
+        if (response.status === 200) {
             console.log(`✅ GEMINI AI: ONLINE | Model Access Verified`);
         }
     } catch (error) {
-         console.error("❌ GEMINI AI: FAILED");
-         console.error("   -> " + error.message);
+        console.error("❌ GEMINI AI: FAILED");
+        console.error("   -> " + error.message);
     }
 
     console.log("=================================================");
