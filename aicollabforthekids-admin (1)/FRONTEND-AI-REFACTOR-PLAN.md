@@ -1,14 +1,17 @@
 # Frontend AI Refactoring Plan - For The Kids Security Update
 
 ## Overview
+
 This document outlines the strategy to remove direct Gemini API key exposure from frontend components while maintaining functionality.
 
 ## Problem
+
 Multiple React components currently instantiate `GoogleGenAI` client-side with `process.env.API_KEY`, exposing the API key in the browser bundle.
 
 ## Solution Strategy
 
 ### Phase 1: Backend Infrastructure ✅ COMPLETE
+
 - Created `backend/services/aiClient.js` - centralized AI service wrapper
 - Refactored `backend/routes/ai.js` to use aiClient service
 - Created `utils/aiApi.ts` - frontend utilities for backend proxy calls
@@ -17,7 +20,8 @@ Multiple React components currently instantiate `GoogleGenAI` client-side with `
 
 ### Phase 2: Component Refactoring Strategy
 
-#### Components Using Direct Google GenAI SDK:
+#### Components Using Direct Google GenAI SDK
+
 These components use advanced Gemini features (image generation, video, multimodal) that require the SDK:
 
 1. **MediaStudio.tsx** - Image/video generation, voice synthesis
@@ -29,9 +33,10 @@ These components use advanced Gemini features (image generation, video, multimod
 7. **ChatView.tsx** - Conversational AI
 8. **App.tsx** - Core app AI features
 
-#### Recommended Approach:
+#### Recommended Approach
 
 **Option A: Backend-Only (Most Secure for Kids)**
+
 - Move ALL AI generation to backend routes
 - Create specialized endpoints for each feature:
   - `/api/ai/generate-image` - Imagen proxy
@@ -44,6 +49,7 @@ These components use advanced Gemini features (image generation, video, multimod
 - **Cons**: More backend code, slightly higher latency
 
 **Option B: Server-Side Rendering with Secure Token (Hybrid)**
+
 - Keep frontend SDK for interactive features
 - Backend issues temporary, scoped API tokens (short-lived)
 - Token has usage limits and rate limiting
@@ -51,14 +57,16 @@ These components use advanced Gemini features (image generation, video, multimod
 - **Cons**: More complex token management
 
 **Option C: Environment-Based (Least Secure - NOT RECOMMENDED)**
+
 - Keep current structure but use server-side env injection
 - **Cons**: Still exposes key in client bundle
 
 ## Recommendation: Option A (Backend-Only)
 
-### Implementation Plan for Option A:
+### Implementation Plan for Option A
 
 1. **Extend backend/routes/ai.js** with new endpoints:
+
    ```javascript
    router.post('/generate-image', async (req, res) => {
      // Use aiClient to call Imagen
@@ -74,6 +82,7 @@ These components use advanced Gemini features (image generation, video, multimod
    ```
 
 2. **Update utils/aiApi.ts** with frontend helpers:
+
    ```typescript
    export async function generateImage(prompt: string, aspectRatio: string) {
      return fetch('/api/ai/generate-image', {
@@ -93,7 +102,8 @@ These components use advanced Gemini features (image generation, video, multimod
    - Move to backend package.json only
    - Reduces client bundle size significantly
 
-## Security Benefits for Kids Platform:
+## Security Benefits for Kids Platform
+
 - ✅ No API keys in browser
 - ✅ Centralized rate limiting and monitoring
 - ✅ Audit trail of all AI requests
@@ -101,7 +111,8 @@ These components use advanced Gemini features (image generation, video, multimod
 - ✅ Protection against client-side key extraction
 - ✅ Compliance with child safety regulations
 
-## Next Steps:
+## Next Steps
+
 1. Create remaining backend AI proxy endpoints
 2. Update aiApi.ts with complete helper suite
 3. Refactor components one-by-one
@@ -109,13 +120,15 @@ These components use advanced Gemini features (image generation, video, multimod
 5. Remove frontend @google/genai dependency
 6. Update documentation
 
-## Timeline Estimate:
+## Timeline Estimate
+
 - Backend endpoints: 2-3 hours
 - Frontend refactoring: 4-6 hours
 - Testing & validation: 2 hours
 - **Total**: ~8-11 hours of focused development
 
-## Notes:
+## Notes
+
 - This protects the kids and maintains full functionality
 - Backend can add additional safety filters before calling Gemini
 - Monitoring becomes centralized and easier

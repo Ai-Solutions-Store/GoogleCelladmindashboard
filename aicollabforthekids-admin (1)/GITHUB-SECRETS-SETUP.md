@@ -7,6 +7,7 @@ Navigate to: `https://github.com/Ai-Solutions-Store/GoogleCelladmindashboard/set
 Set the following secrets:
 
 ### Core Services
+
 | Secret Name | Purpose | Example Value |
 |-------------|---------|---------------|
 | `GEMINI_API_KEY` | Google Gemini AI API key | `AIzaSy...` |
@@ -16,6 +17,7 @@ Set the following secrets:
 | `POSTGRES_PASSWORD` | Database password | Strong password |
 
 ### Optional Services (if used)
+
 | Secret Name | Purpose |
 |-------------|---------|
 | `GOOGLE_CLIENT_ID` | Google OAuth (if implementing) |
@@ -25,6 +27,7 @@ Set the following secrets:
 ## Current Status
 
 ✅ All secrets are stored in:
+
 1. GitHub Repository Secrets (for CI/CD deployment)
 2. Local `.env` files (for development - gitignored)
 
@@ -49,6 +52,7 @@ ${{ secrets.SQUARE_ACCESS_TOKEN }}
 ## For Deployment
 
 When deploying to production servers, inject secrets via:
+
 - Environment variables
 - Docker secrets
 - Cloud provider secret managers (Azure Key Vault, AWS Secrets Manager, etc.)
