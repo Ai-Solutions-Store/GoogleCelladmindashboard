@@ -77,32 +77,27 @@ All secrets are stored in:
 1. GitHub Secrets (for CI/CD)
 2. `.env` file (local development)
 
-### Required Environment Variables
+### Required Environment Variables (Placeholders – see `SECRETS-INVENTORY.md` for mapping)
 
 ```bash
-# Database
-DATABASE_URL=postgresql://...
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=youandinotai
-DB_USER=...
-DB_PASSWORD=...
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# JWT
-JWT_SECRET=...
-
-# APIs
-GEMINI_API_KEY=AIzaSyBuaA6sdJ2kvIeXiL1jY4Qm7StXAUwFWG4
-SQUARE_ACCESS_TOKEN=EAAAl8htrajjl_aJa5eJQgW9YC1iFaaNNL0qd6r6FPLbIVITM3l8W9WJQgW9YC1
-SQUARE_LOCATION_ID=LQRMVQHDQTNM2
-
-# App
+# Core Application
 PORT=8080
 NODE_ENV=production
+
+# Database (use consolidated POSTGRES_PASSWORD and DATABASE_URL, avoid separate DB_* vars)
+POSTGRES_PASSWORD=<redacted>
+DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@localhost:5432/youandinotai
+
+# Cache
+REDIS_URL=redis://localhost:6379
+
+# Auth
+JWT_SECRET=<redacted>
+
+# External Services (never commit real values)
+GEMINI_API_KEY=<redacted>
+SQUARE_ACCESS_TOKEN=<redacted>
+SQUARE_LOCATION_ID=<redacted>
 ```
 
 ## Deployment
