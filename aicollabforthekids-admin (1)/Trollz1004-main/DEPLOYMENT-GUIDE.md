@@ -1,4 +1,5 @@
 # 🚀 YouAndINotAI - Complete Production Deployment Guide
+
 ## NO PLACEHOLDERS - ALL REAL CREDENTIALS INCLUDED
 
 ---
@@ -6,6 +7,7 @@
 ## ✅ What You're Getting
 
 ✨ **Complete Dating App** with:
+
 - AI-Powered Matching (Gemini API)
 - Square Payment Processing ($9.99, $19.99, $29.99)
 - Real-time Messaging
@@ -30,12 +32,14 @@ bash COMPLETE-DEPLOY.sh
 ```
 
 **That's it!** The script will:
+
 1. Enable all Google Cloud APIs
 2. Store secrets in Secret Manager
 3. Deploy complete app to Cloud Run
 4. Return your live URL
 
 **Expected Result:**
+
 ```
 Service URL: https://youandinotai-complete-xxx.run.app
 Health Check: https://youandinotai-complete-xxx.run.app/health
@@ -53,9 +57,10 @@ docker-compose -f docker-compose-full.yml up -d
 ```
 
 Access at:
-- Dating App: http://localhost:80
-- Backend API: http://localhost:8080
-- Dashboard: http://localhost:3000
+
+- Dating App: <http://localhost:80>
+- Backend API: <http://localhost:8080>
+- Dashboard: <http://localhost:3000>
 
 ---
 
@@ -73,11 +78,13 @@ node server.js
 ## 📊 Testing Your Deployment
 
 ### 1. Health Check
+
 ```bash
 curl https://your-service-url/health
 ```
 
 Expected Response:
+
 ```json
 {
   "status": "healthy",
@@ -98,6 +105,7 @@ Expected Response:
 ```
 
 ### 2. Test AI Matching
+
 ```bash
 curl -X POST https://your-service-url/api/ai/match \
   -H "Content-Type: application/json" \
@@ -105,6 +113,7 @@ curl -X POST https://your-service-url/api/ai/match \
 ```
 
 ### 3. Test Admin Dashboard
+
 ```bash
 curl https://your-service-url/api/admin/stats
 ```
@@ -113,7 +122,7 @@ curl https://your-service-url/api/admin/stats
 
 ## 🌐 Connect Your Domains
 
-### Update Cloudflare DNS:
+### Update Cloudflare DNS
 
 1. Login to Cloudflare
 2. Select `youandinotai.com`
@@ -133,33 +142,38 @@ curl https://your-service-url/api/admin/stats
 
 | Service | Credential | Status |
 |---------|-----------|--------|
-| **Gemini AI** | `AIzaSyBuaA6sdJ2kvIeXiL1jY4Qm7StXAUwFWG4` | ✅ Active |
-| **Square Token** | `EAAAl8htrajjl_aJa5eJQgW9YC1iFaa...` | ✅ Active |
-| **Square Location** | `LQRMVQHDQTNM2` | ✅ Active |
-| **JWT Secret** | `1F12AveIX012LgeKifuivOQ2IYQHJ...` | ✅ Active |
-| **Database Password** | `ezg0/ZqobdoeN5vBRl8Uj9CSy59M...` | ✅ Active |
-| **Business EIN** | `33-4655313` | ✅ Active |
+| **Gemini AI** | `<REDACTED_USE_GITHUB_SECRET>` | ✅ Active |
+| **Square Token** | `<REDACTED_USE_GITHUB_SECRET>` | ✅ Active |
+| **Square Location** | `<REDACTED_USE_GITHUB_SECRET>` | ✅ Active |
+| **JWT Secret** | `<REDACTED_USE_GITHUB_SECRET>` | ✅ Active |
+| **Database Password** | `<REDACTED_USE_GITHUB_SECRET>` | ✅ Active |
+| **Business EIN** | `33-4655313` | ✅ Public Info |
 
 ---
 
 ## 📱 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 
 ### AI Features
+
 - `POST /api/ai/match` - AI-powered matching
 - `POST /api/ai/icebreaker` - Generate conversation starters
 
 ### Payments
+
 - `POST /api/payments/subscribe` - Process subscription
 
 ### Admin Dashboard
+
 - `GET /api/admin/stats` - Platform statistics
 - `GET /api/admin/users/recent` - Recent users
 
 ### Health & Status
+
 - `GET /health` - Service health check
 - `GET /api/messaging/status` - Messaging system status
 
@@ -202,14 +216,16 @@ Access at: `https://your-url/api/admin/stats`
 
 ## 🔧 Monitoring & Logs
 
-### View Cloud Run Logs:
+### View Cloud Run Logs
+
 ```bash
 gcloud run services logs read youandinotai-complete \
   --region=us-central1 \
   --project=pelagic-bison-476817-k7
 ```
 
-### Run Monitoring Script:
+### Run Monitoring Script
+
 ```bash
 bash scripts/monitor-platform.sh
 ```
@@ -233,7 +249,9 @@ bash scripts/monitor-platform.sh
 ## 💡 Quick Troubleshooting
 
 ### Issue: 403 Forbidden
+
 **Solution:** Make service public
+
 ```bash
 gcloud run services add-iam-policy-binding youandinotai-complete \
   --region=us-central1 \
@@ -243,15 +261,19 @@ gcloud run services add-iam-policy-binding youandinotai-complete \
 ```
 
 ### Issue: Database connection failed
+
 **Solution:** Check Cloud SQL instance is running
+
 ```bash
 gcloud sql instances describe youandinotai-db --project=pelagic-bison-476817-k7
 ```
 
 ### Issue: Gemini API errors
+
 **Solution:** Verify API key
+
 ```bash
-curl "https://generativelanguage.googleapis.com/v1/models?key=AIzaSyBuaA6sdJ2kvIeXiL1jY4Qm7StXAUwFWG4"
+curl "https://generativelanguage.googleapis.com/v1/models?key=YOUR_GEMINI_API_KEY_HERE"
 ```
 
 ---
@@ -260,12 +282,12 @@ curl "https://generativelanguage.googleapis.com/v1/models?key=AIzaSyBuaA6sdJ2kvI
 
 - **Business**: YouAndINotAI LLC
 - **EIN**: 33-4655313
-- **Email**: support@youandinotai.com
-- **GitHub**: https://github.com/Trollz1004/Trollz1004
+- **Email**: <support@youandinotai.com>
+- **GitHub**: <https://github.com/Trollz1004/Trollz1004>
 
 ---
 
-## 🎉 You're Done!
+## 🎉 You're Done
 
 Your complete dating platform with admin dashboard is now live with:
 ✅ Real AI matching
