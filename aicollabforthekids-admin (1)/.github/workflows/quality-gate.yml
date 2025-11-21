@@ -1,0 +1,30 @@
+
+name: "Strict Quality Gate"
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  enforce-standards:
+    name: "Enforce No Placeholders"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Grant Execution Permission
+        run: chmod +x scripts/enforce-quality.sh
+
+      - name: Run Quality Gate
+        run: ./scripts/enforce-quality.sh
+
+      - name: Verify Critical Files Existence
+        run: |
+          if [ ! -s App.tsx ]; then
+            echo "❌ App.tsx is empty or missing!"; exit 1;
+          fi
+          echo "✅ Critical file structure verified."

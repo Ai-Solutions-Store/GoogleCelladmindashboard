@@ -1,0 +1,39 @@
+
+name: Guardian Integrity Protocol
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  verify-guardian:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Scan for Life Signs
+      run: |
+        if [ ! -f "guardian/revenue-guardian.js" ]; then
+          echo "🚨 CRITICAL ALERT: The Eternal Revenue Guardian has been removed!"
+          echo "This is a violation of the core architecture. Restore 'guardian/revenue-guardian.js' immediately."
+          exit 1
+        fi
+        
+        echo "✅ Guardian Core detected."
+
+    - name: Structural Integrity Check
+      run: |
+        # Verify the dual-agent architecture exists in code
+        if ! grep -q "runScout" "guardian/revenue-guardian.js"; then
+          echo "❌ SCOUT AGENT MISSING. Integrity compromised."
+          exit 1
+        fi
+        if ! grep -q "runCritic" "guardian/revenue-guardian.js"; then
+          echo "❌ CRITIC AGENT MISSING. Integrity compromised."
+          exit 1
+        fi
+        
+        echo "✅ Dual-Agent Architecture verified."
