@@ -22,8 +22,17 @@ const PORT = process.env.PORT || 8080;
 
 // Security middleware
 app.use(helmet());
+
+// CORS configuration - fail fast if not properly configured in production
+const frontendUrl = process.env.FRONTEND_URL;
+if (process.env.NODE_ENV === 'production' && (!frontendUrl || frontendUrl === '*')) {
+  console.error('ERROR: FRONTEND_URL must be set to a specific domain in production');
+  console.error('Using wildcard (*) for CORS in production is a security risk');
+  process.exit(1);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // In production, set this to your frontend domain
+  origin: frontendUrl || '*', // Wildcard only allowed in development
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type']
 }));
@@ -113,10 +122,10 @@ app.post('/api/ai/analyze', async (req, res) => {
   } catch (error) {
     console.error('Error generating analysis:', error);
     
-    // Don't expose internal error details to client
+    // Don't expose internal error details to client in production
     res.status(500).json({ 
       error: 'Failed to generate analysis. Please try again later.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 });
@@ -134,7 +143,7 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ 
     error: 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    details: process.env.NODE_ENV !== 'production' ? err.message : undefined
   });
 });
 

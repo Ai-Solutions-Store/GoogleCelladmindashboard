@@ -30,7 +30,8 @@ warn() {
 
 # Check 1: Build with production configuration
 echo "📦 Building for production with backend proxy..."
-if BACKEND_API_URL=https://example-backend.com npm run build > /dev/null 2>&1; then
+# Use .test TLD to make it clear this is for testing
+if BACKEND_API_URL=https://backend.example.test npm run build > /dev/null 2>&1; then
     pass "Production build successful"
 else
     fail "Production build failed"
@@ -39,7 +40,7 @@ fi
 # Check 2: Verify backend URL is in bundle
 echo ""
 echo "🔍 Checking for backend URL in bundle..."
-if grep -q "example-backend" dist/assets/*.js 2>/dev/null; then
+if grep -q "backend.example.test" dist/assets/*.js 2>/dev/null; then
     pass "Backend URL found in bundle (expected for proxy mode)"
 else
     fail "Backend URL not found in bundle"

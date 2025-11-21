@@ -67,8 +67,19 @@ async function callBackendProxy(request: AnalysisRequest): Promise<AnalysisRespo
  * WARNING: This exposes the API key in the frontend bundle
  */
 async function callDirectAPI(request: AnalysisRequest): Promise<AnalysisResponse> {
+  // Security check: warn if attempting to use direct API in production
+  if (import.meta.env.PROD && !import.meta.env.DEV) {
+    console.error('⚠️  SECURITY WARNING: Direct API calls should not be used in production!');
+    console.error('⚠️  Set BACKEND_API_URL environment variable to use the secure backend proxy.');
+  }
+  
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error('API_KEY not configured. Set BACKEND_API_URL for production or API_KEY for development.');
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
     const model = request.model || 'gemini-2.5-pro';
     const thinkingBudget = request.thinkingBudget || 32768;
 
