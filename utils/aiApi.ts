@@ -68,7 +68,7 @@ async function callBackendProxy(request: AnalysisRequest): Promise<AnalysisRespo
  */
 async function callDirectAPI(request: AnalysisRequest): Promise<AnalysisResponse> {
   // Security check: warn if attempting to use direct API in production
-  if (import.meta.env.PROD && !import.meta.env.DEV) {
+  if (import.meta.env.PROD) {
     console.error('⚠️  SECURITY WARNING: Direct API calls should not be used in production!');
     console.error('⚠️  Set BACKEND_API_URL environment variable to use the secure backend proxy.');
   }
@@ -94,9 +94,15 @@ async function callDirectAPI(request: AnalysisRequest): Promise<AnalysisResponse
     return { text: response.text };
   } catch (error) {
     console.error('Direct API call failed:', error);
+    
+    // In production, show generic error. In dev, show helpful diagnostic
+    const errorMessage = import.meta.env.PROD
+      ? 'Sorry, I couldn\'t generate an analysis at this time. Please try again later.'
+      : 'Sorry, I couldn\'t generate an analysis at this time. Please check the API key and try again.';
+    
     return {
       text: '',
-      error: 'Sorry, I couldn\'t generate an analysis at this time. Please check the API key and try again.',
+      error: errorMessage,
     };
   }
 }
