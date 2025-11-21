@@ -87,6 +87,7 @@ app.get('/health', (req, res) => {
 app.post('/api/ai/analyze', async (req, res) => {
   try {
     const { prompt, model = 'gemini-2.5-pro', thinkingBudget = 32768 } = req.body;
+    const maxPromptLength = parseInt(process.env.MAX_PROMPT_LENGTH || '10000', 10);
 
     // Validate input
     if (!prompt || typeof prompt !== 'string') {
@@ -95,9 +96,9 @@ app.post('/api/ai/analyze', async (req, res) => {
       });
     }
 
-    if (prompt.length > 10000) {
+    if (prompt.length > maxPromptLength) {
       return res.status(400).json({ 
-        error: 'Invalid request: prompt is too long (max 10000 characters)' 
+        error: `Invalid request: prompt is too long (max ${maxPromptLength} characters)` 
       });
     }
 

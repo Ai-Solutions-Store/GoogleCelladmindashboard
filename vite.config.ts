@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
       define: {
         // In production with backend proxy, don't include API key
         // In development without backend proxy, include API key
-        'process.env.API_KEY': JSON.stringify(backendUrl && mode === 'production' ? '' : apiKey),
-        'process.env.GEMINI_API_KEY': JSON.stringify(backendUrl && mode === 'production' ? '' : apiKey),
+        'process.env.API_KEY': JSON.stringify(backendUrl && mode === 'production' ? undefined : apiKey),
+        'process.env.GEMINI_API_KEY': JSON.stringify(backendUrl && mode === 'production' ? undefined : apiKey),
         // Backend URL for production mode
         'process.env.BACKEND_API_URL': JSON.stringify(backendUrl)
       },
