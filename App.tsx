@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { GoogleGenAI } from '@google/genai';
 
 import Sidebar from './components/Sidebar';
 import StatCard from './components/StatCard';
@@ -15,6 +14,7 @@ import { initialDaoLaunches, initialKickstarterProjects, initialStartupKpis } fr
 import { type DaoLaunch, type KickstarterProject, type StartupKpis, type View } from './types';
 import { ChartSkeleton, KickstarterListSkeleton, StatCardSkeleton, TableSkeleton } from './components/Skeletons';
 import KickstarterFilters from './components/KickstarterFilters';
+import { generateAnalysis, createAnalysisPrompt } from './utils/aiApi';
 
 /**
  * Simulates fetching the number of proposals for a given DAO.
@@ -92,10 +92,10 @@ const App: React.FC = () => {
         let title = '';
         if (item === 'kpis') {
             title = 'Startup KPIs Analysis';
-            prompt = `Analyze the following startup KPIs and provide insights and recommendations. Be concise and use markdown formatting. KPIs: ${JSON.stringify(startupKpis)}`;
+            prompt = createAnalysisPrompt('Startup KPIs', startupKpis);
         } else {
             title = `Analysis for ${item.name}`;
-            prompt = `Analyze the following project and provide insights and recommendations. Be concise and use markdown formatting. Data: ${JSON.stringify(item)}`;
+            prompt = createAnalysisPrompt('project', item);
         }
 
         setAnalysisTitle(title);
@@ -104,20 +104,21 @@ const App: React.FC = () => {
         setAnalysisContent(null);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            // Use gemini-2.5-pro with max thinkingBudget for complex analysis
-            const response = await ai.models.generateContent({
-              model: 'gemini-2.5-pro',
-              contents: prompt,
-              config: {
-                thinkingConfig: { thinkingBudget: 32768 }
-              }
+            // Use abstracted API call that can route to backend proxy
+            const response = await generateAnalysis({
+                prompt,
+                model: 'gemini-2.5-pro',
+                thinkingBudget: 32768
             });
 
-            setAnalysisContent(response.text);
+            if (response.error) {
+                setAnalysisContent(response.error);
+            } else {
+                setAnalysisContent(response.text);
+            }
         } catch (error) {
             console.error("Error generating analysis:", error);
-            setAnalysisContent("Sorry, I couldn't generate an analysis at this time. Please check the API key and try again.");
+            setAnalysisContent("Sorry, I couldn't generate an analysis at this time. Please try again.");
         } finally {
             setIsAnalyzing(false);
         }
