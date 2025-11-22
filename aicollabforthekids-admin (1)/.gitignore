@@ -17,6 +17,11 @@ dist-ssr
 .env.local
 .env.production
 .env.*.local
+backend/.env
+backend/.env.local
+
+# Example template allowed
+!.env.example
 
 # Editor directories and files
 .vscode/*

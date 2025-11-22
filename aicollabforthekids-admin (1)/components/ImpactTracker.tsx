@@ -9,7 +9,8 @@ const ImpactTracker: React.FC = () => {
   const [totalDonations, setTotalDonations] = useState(0.00);
   const [livesImpacted, setLivesImpacted] = useState(0);
   const [recentDonations, setRecentDonations] = useState<{user: string, amount: number, location: string, time: string}[]>([]);
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
+    const [aiInsight, setAiInsight] = useState<string | null>(null);
+    const [strategyPanel, setStrategyPanel] = useState(false);
   const [isLoadingInsight, setIsLoadingInsight] = useState(false);
 
   // Fetch Real Data (Placeholder for backend connection)
@@ -61,10 +62,14 @@ const ImpactTracker: React.FC = () => {
                 <p className="text-slate-400 mt-1">Real-time visualization of charitable reach</p>
             </div>
             <div className="flex items-center gap-4">
-                <div className="text-right">
+                        <div className="text-right">
                     <p className="text-xs text-slate-400 uppercase tracking-wider">Total Raised</p>
                     <p className="text-3xl font-bold text-green-400">${totalDonations.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 </div>
+                        <button
+                            onClick={() => setStrategyPanel(s => !s)}
+                            className="ml-6 text-xs px-3 py-2 rounded bg-pink-600 hover:bg-pink-700 text-white shadow-inner"
+                        >{strategyPanel ? 'Hide Strategy' : 'Show Strategy'}</button>
             </div>
         </header>
 
@@ -125,7 +130,7 @@ const ImpactTracker: React.FC = () => {
                     </div>
                 </div>
                 
-                <div className="glass-card p-6 border border-purple-500/30">
+                                <div className="glass-card p-6 border border-purple-500/30">
                      <div className="flex justify-between items-center mb-3">
                         <h3 className="font-bold text-purple-300 flex items-center gap-2">
                             <Sparkles className="w-4 h-4" /> AI Optimization
@@ -142,6 +147,37 @@ const ImpactTracker: React.FC = () => {
                          <p className="text-xs text-slate-500 italic">Generate Launch Strategy</p>
                      )}
                 </div>
+
+                                {strategyPanel && (
+                                    <div className="glass-card p-6 border border-pink-500/30">
+                                        <h3 className="text-lg font-bold text-pink-300 mb-4">Holiday 2025 Strategic Activation</h3>
+                                        <ul className="space-y-3 text-sm text-slate-300">
+                                            <li>
+                                                <span className="font-semibold text-white">1. Tribute Gift Shop:</span> Hyper-personalized outcomes (Burn Kit, Teddy Bear, Wound Care Pack). <span className="text-pink-400">"Stop giving stuff. Give survival."</span>
+                                            </li>
+                                            <li>
+                                                <span className="font-semibold text-white">2. Flash-Match Sprint:</span> Surprise 4-hour window with triple matching & live countdown.
+                                            </li>
+                                            <li>
+                                                <span className="font-semibold text-white">3. Tiny Heroes Clips:</span> 3 x 15s resilient recovery moments (#TinyHeroes #GiantHearts).
+                                            </li>
+                                        </ul>
+                                        <div className="mt-5 grid grid-cols-3 gap-4 text-center">
+                                            <div className="p-3 rounded bg-white/5">
+                                                <p className="text-xs uppercase text-slate-400">Launch KPI</p>
+                                                <p className="text-lg font-bold text-white">First Donor &lt;24h</p>
+                                            </div>
+                                            <div className="p-3 rounded bg-white/5">
+                                                <p className="text-xs uppercase text-slate-400">Match Peak</p>
+                                                <p className="text-lg font-bold text-white">3x Baseline</p>
+                                            </div>
+                                            <div className="p-3 rounded bg-white/5">
+                                                <p className="text-xs uppercase text-slate-400">Tribute Conv</p>
+                                                <p className="text-lg font-bold text-white">&gt;12%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
             </div>
         </div>
     </main>
