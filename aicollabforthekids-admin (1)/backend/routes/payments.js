@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { Client, Environment } = require('square');
+const { Client } = require('square');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 
 // ✅ PRODUCTION MODE - NO SANDBOX
 const squareClient = new Client({
     accessToken: process.env.SQUARE_ACCESS_TOKEN,
-    environment: Environment.Production // LIVE TRANSACTIONS ONLY
+    environment: 'production' // LIVE TRANSACTIONS ONLY
 });
 
 // GET /api/payments/plans - Get available subscription plans
