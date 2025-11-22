@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
+// Removed uuid import (ESM-only in current version) since not used; avoids ERR_REQUIRE_ESM in Node 22.
 const logger = require('../utils/logger');
 
 /**
