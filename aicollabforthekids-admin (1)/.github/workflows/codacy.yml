@@ -1,0 +1,35 @@
+name: Codacy Static Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  codacy-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Codacy CLI
+        run: |
+          curl -Ls -o codacy.sh https://raw.githubusercontent.com/codacy/codacy-cli-v2/main/codacy-cli.sh
+          bash codacy.sh download latest
+          chmod +x codacy
+
+      - name: Run Codacy Analysis
+        run: |
+          ./codacy analyze --format text --verbosity info || true
+
+      - name: Upload SARIF Report
+        if: always()
+        run: |
+          if [ -f codacy.sarif ]; then echo "Found SARIF"; fi
+        # Placeholder for integration with GitHub Advanced Security if desired

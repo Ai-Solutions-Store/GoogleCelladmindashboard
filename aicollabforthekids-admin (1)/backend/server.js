@@ -24,6 +24,8 @@ const matchingRoutes = require('./routes/matching');
 const paymentRoutes = require('./routes/payments');
 const adminRoutes = require('./routes/admin');
 const aiRoutes = require('./routes/ai');
+const daoRoutes = require('./routes/dao');
+const impactRoutes = require('./routes/impact');
 
 // Import middleware
 const { authenticateToken, requirePremium, requireAdmin } = require('./middleware/auth');
@@ -141,8 +143,17 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
 app.use('/api/matching', authenticateToken, matchingRoutes);
 app.use('/api/payments', authenticateToken, paymentRoutes);
+app.use('/api/dao', daoRoutes); // Public transparency endpoints
+app.use('/api/impact', impactRoutes); // Public impact metrics
 app.use('/api/ai', authenticateToken, requirePremium, aiRoutes);
 app.use('/api/admin', authenticateToken, requireAdmin, adminRoutes);
+
+// Public AI health (no auth) for external monitoring
+const aiClient = require('./services/aiClient');
+app.get('/api/ai/health', (req, res) => {
+    const status = aiClient.getStatus ? aiClient.getStatus() : { configured: aiClient.isConfigured() };
+    res.json({ success: true, ...status });
+});
 
 // ============================================================================
 // SPA FALLBACK
