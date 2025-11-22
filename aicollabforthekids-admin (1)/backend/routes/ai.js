@@ -103,3 +103,15 @@ router.post('/date-suggestions', async (req, res) => {
 });
 
 module.exports = router;
+
+// GET /api/ai/health - configuration & model status
+router.get('/health', (req, res) => {
+    const status = aiClient.getStatus ? aiClient.getStatus() : { configured: aiClient.isConfigured() };
+    res.json({
+        success: true,
+        configured: status.configured,
+        model: status.model || null,
+        keySource: status.keySource || null
+    });
+});
+
